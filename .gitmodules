@@ -1,0 +1,3 @@
+[submodule "rust/ptokens-core"]
+	path = rust/ptokens-core
+	url = https://github.com/pnetwork-association/ptokens-core.git
