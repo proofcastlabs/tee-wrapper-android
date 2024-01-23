@@ -63,7 +63,7 @@ cargo {
     libname = "sentinel-strongbox"
     targetIncludes = ['libsentinel_strongbox.so']
     targetDirectory = "../../rust/ptokens-core/target"
-    module  = "../../rust/ptokens-core/v3_bridges/evm/sentinel-strongbox"
+    module  = "../../rust/ptokens-core/v3_bridges/sentinel-strongbox"
 }
 
 tasks.whenTaskAdded { task ->
