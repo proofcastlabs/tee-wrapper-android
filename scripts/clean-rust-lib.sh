@@ -4,7 +4,7 @@ cd "$(dirname -- $0)"
 
 echo "removing old rust libs..."
 
-readarray -d '' paths < <(find ../ -name "libsentinel_strongbox.so")
+readarray -d '' paths < <(find ../ -name "libstrongbox.so")
 
 for path in "${paths[@]}"
 do
