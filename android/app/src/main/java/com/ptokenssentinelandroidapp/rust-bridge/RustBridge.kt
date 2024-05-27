@@ -23,7 +23,7 @@ class RustBridge(reactContext: ReactApplicationContext) : ReactContextBaseJavaMo
   var strongbox: Strongbox? = null
 
   init {
-    System.loadLibrary("sentinel_strongbox")
+    System.loadLibrary("strongbox")
     System.loadLibrary("sqliteX")
     System.loadLibrary("shathree")
     this.strongbox = Strongbox(this.context)
