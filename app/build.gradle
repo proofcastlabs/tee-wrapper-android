@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'multiprooflabs.tee'
+    namespace 'proofcastlabs.tee'
     compileSdk rootProject.ext.targetSdk
 
     defaultConfig {
-        applicationId "multiprooflabs.tee";
+        applicationId "proofcastlabs.tee";
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdk
         versionCode rootProject.ext.versionCode

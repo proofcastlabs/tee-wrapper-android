@@ -1,6 +1,6 @@
 #!/bin/bash
 function logcat {
-  pkg="multiprooflabs.tee"
+  pkg="proofcastlabs.tee"
   device="$1"
   if [[ -n "$device" ]]; then device="-s $device"; fi
 
