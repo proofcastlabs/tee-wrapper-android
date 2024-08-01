@@ -33,6 +33,7 @@ testnet.keystore
 testnet.keystore.credentials
 local.properties
 *signing.properties
+*config.properties
 credentials
 keystore*
 .gradle

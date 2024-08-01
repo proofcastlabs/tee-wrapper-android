@@ -7,18 +7,6 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
 }
 
-def LOCAL_PROP_PATH_ATTESTOR = 'ext.attestatorPath'
-def LOCAL_PROP_CARGO_PROFILE = 'ext.cargoProfile'
-def LOCAL_PROP_DEVICE_ID = 'ext.deviceId'
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-def attestatorPath_ = properties.getProperty(LOCAL_PROP_PATH_ATTESTOR, null)
-def cargoProfile_ = properties.getProperty(LOCAL_PROP_CARGO_PROFILE, 'release')
-def deviceId = properties.getProperty(LOCAL_PROP_DEVICE_ID, '')
-if (attestatorPath_ == null) {
-    throw new Exception("No '${LOCAL_PROP_PATH_ATTESTOR}' property set into your local.properties file!")
-}
-
 ext {
     minSdk = 28
     targetSdk = 33
@@ -27,12 +15,15 @@ ext {
     ndkVersion = "25.2.9519653"
     kotlinVersion = '1.7.20'
     ndkAbiFilters = 'armeabi-v7a'
-
-    profile = "$cargoProfile_"
-    attestatorPath = "$attestatorPath_"
 }
 
 // Device interactions tasks
+def config = 'config.properties'
+Properties properties = new Properties()
+properties.load(project.rootProject.file(config).newDataInputStream())
+if (properties.isEmpty())
+    throw new Exception("Failed to load ${config} file, create one first!")
+def deviceId = properties.getProperty('adb.deviceId')
 task launch(type: Exec) {
     executable "./scripts/launch.sh"
     args "$deviceId"

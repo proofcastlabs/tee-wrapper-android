@@ -24,9 +24,9 @@ class MainActivity : AppCompatActivity() {
     private val WS_RETRY_DELAY = 3_000L
     private val WS_PING_INTERVAL = 55_000L
 
-    private val verifyStateHash = false
-    private val writeStateHash = false
-    private val isStrongboxBacked = false
+    private val verifyStateHash = BuildConfig.VERIFY_STATE_HASH.toBoolean()
+    private val writeStateHash = BuildConfig.WRITE_STATE_HASH.toBoolean()
+    private val isStrongboxBacked = BuildConfig.STRONGBOX_ENABLED.toBoolean()
     private var client: HttpClient? = null
     private var strongbox: Strongbox? = null
     private var db: DatabaseWiring? = null

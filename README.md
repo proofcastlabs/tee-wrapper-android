@@ -41,9 +41,18 @@ ndk.dir=/opt/android-sdk/ndk/25.2.9519653
 
 rust.rustcCommand=/home/mauro/.cargo/bin/rustc
 rust.cargoCommand=/home/mauro/.cargo/bin/cargo
+```
 
-ext.deviceId=<device-id>
-ext.attestatorPath=/home/mauro/w/event-attestator
+And create the `config.properties` file:
+
+```env
+build.verifyStateHash=false
+build.writeStateHash=false
+build.strongboxEnabled=false
+
+adb.deviceId=H3LL0D3V1C3
+cargo.attestatorPath=/path/to/event-attestator
+cargo.profile=release
 ```
 
 3. Plug the device and run

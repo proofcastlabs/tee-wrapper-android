@@ -5,9 +5,24 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
 }
 
+def config = 'config.properties'
+Properties properties = new Properties()
+properties.load(project.rootProject.file(config).newDataInputStream())
+if (properties.isEmpty())
+    throw new Exception("Failed to load ${config} file, create one first!")
+def cargoProfile = properties.getProperty('cargo.profile', 'release')
+def attestatorPath = properties.getProperty('cargo.attestatorPath')
+def strongboxEnabled = properties.getProperty('build.strongboxEnabled', 'false')
+def verifyStateHash = properties.getProperty('build.verifyStateHash', 'false')
+def writeStateHash = properties.getProperty('build.writeStateHash', 'false')
+
 android {
     namespace 'proofcastlabs.tee'
     compileSdk rootProject.ext.targetSdk
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId "proofcastlabs.tee";
@@ -43,9 +58,13 @@ android {
             into "../"
         }
     }
+
+    applicationVariants.all { variant ->
+        buildConfigField('String', 'STRONGBOX_ENABLED', "\"${strongboxEnabled}\"")
+        buildConfigField('String', 'VERIFY_STATE_HASH', "\"${verifyStateHash}\"")
+        buildConfigField('String', 'WRITE_STATE_HASH', "\"${writeStateHash}\"")
+    }
 }
-
-
 
 cargo {
     // Leave it for arm32, because artifacts for arm64
@@ -57,11 +76,11 @@ cargo {
     // libraries are compiled for the correct arch
     //    verbose = true
     targets = [ "arm" ]
-    profile = rootProject.ext.profile;
+    profile = cargoProfile;
     libname = "strongbox"
     targetIncludes = ['libstrongbox.so']
-    targetDirectory = "${rootProject.ext.attestatorPath}/target"
-    module  = "${rootProject.ext.attestatorPath}/apps/strongbox"
+    targetDirectory = "${attestatorPath}/target"
+    module  = "${attestatorPath}/apps/strongbox"
 }
 
 tasks.whenTaskAdded { task ->
