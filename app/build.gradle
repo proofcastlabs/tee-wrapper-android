@@ -1,0 +1,110 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.mozilla.rust-android-gradle.rust-android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
+}
+
+def config = 'config.properties'
+Properties properties = new Properties()
+properties.load(project.rootProject.file(config).newDataInputStream())
+if (properties.isEmpty())
+    throw new Exception("Failed to load ${config} file, create one first!")
+def cargoProfile = properties.getProperty('cargo.profile', 'release')
+def attestatorPath = properties.getProperty('cargo.attestatorPath')
+def strongboxEnabled = properties.getProperty('build.strongboxEnabled', 'false')
+def verifyStateHash = properties.getProperty('build.verifyStateHash', 'false')
+def writeStateHash = properties.getProperty('build.writeStateHash', 'false')
+
+android {
+    namespace 'proofcastlabs.tee'
+    compileSdk rootProject.ext.targetSdk
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    defaultConfig {
+        applicationId "proofcastlabs.tee";
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+        ndk.abiFilters rootProject.ext.ndkAbiFilters
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    gradle.buildFinished {
+        copy {
+            println "Copying apk debug...${rootProject.name}"
+            from "build/outputs/apk/debug/app-debug.apk"
+            rename "app-debug.apk", "${rootProject.name}-debug.apk"
+            into "../"
+        }
+    }
+
+    applicationVariants.all { variant ->
+        buildConfigField('String', 'STRONGBOX_ENABLED', "\"${strongboxEnabled}\"")
+        buildConfigField('String', 'VERIFY_STATE_HASH', "\"${verifyStateHash}\"")
+        buildConfigField('String', 'WRITE_STATE_HASH', "\"${writeStateHash}\"")
+    }
+}
+
+cargo {
+    // Leave it for arm32, because artifacts for arm64
+    // have not been built for libshathree. If want to use
+    // arm64, build shathree for arm64 first. Analyze apk
+    // to check the library is included. Also
+    //   ./gradlew -d clean assembleDebug
+    // and uncomment the following line to see if the
+    // libraries are compiled for the correct arch
+    //    verbose = true
+    targets = [ "arm" ]
+    profile = cargoProfile;
+    libname = "strongbox"
+    targetIncludes = ['libstrongbox.so']
+    targetDirectory = "${attestatorPath}/target"
+    module  = "${attestatorPath}/apps/strongbox"
+}
+
+tasks.whenTaskAdded { task ->
+    if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+        task.dependsOn 'cargoBuild'
+    }
+}
+
+dependencies {
+    implementation project(path: ':sqlite3')
+    implementation 'com.google.android.gms:play-services-safetynet:18.0.1'
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.6.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.14.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'io.ktor:ktor-client-core:2.3.10'
+    implementation 'io.ktor:ktor-client-cio:2.3.10'
+    implementation 'io.ktor:ktor-client-websockets:2.3.10'
+    implementation 'commons-codec:commons-codec:1.17.0'
+    implementation 'org.web3j:core:4.8.7-android'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
