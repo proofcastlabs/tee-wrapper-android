@@ -8,15 +8,20 @@ import android.util.Log
 import kotlinx.coroutines.runBlocking
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import okhttp3.Dns
 import proofcastlabs.tee.database.DatabaseWiring
 import proofcastlabs.tee.database.SQLiteHelper
 import proofcastlabs.tee.security.Strongbox
 import java.lang.Exception
+import java.net.Inet4Address
+import java.net.InetAddress
+import java.time.Duration
 
 class MainActivity : AppCompatActivity() {
     private external fun callCore(strongbox: Strongbox, db: DatabaseWiring, input: String): String
@@ -45,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             method = HttpMethod.Get,
             path = "/ws",
             host = "127.0.0.1",
-            port = 3000,
+            port = 3000
         ) {
             Log.i(TAG, "Websocket connected")
             strongbox = Strongbox(context)
@@ -54,7 +59,8 @@ class MainActivity : AppCompatActivity() {
                 context,
                 SQLiteHelper(context).writableDatabase,
                 verifyStateHash,
-                writeStateHash
+                writeStateHash,
+                isStrongboxBacked
             )
             Log.i(TAG, "Database opened")
             while (true) {
@@ -83,6 +89,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     // We enter here when the WS channel is closed
                     Log.w(TAG, "Coroutine exception handler, cause: ${e.message}")
+                    e.printStackTrace()
                     db?.close()
                     strongbox = null
                     Log.w(TAG, "Retrying to connect")
@@ -97,12 +104,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val context = this
-        client = HttpClient { install(WebSockets) { pingInterval = WS_PING_INTERVAL } }
-
-        runBlocking {
-            maybeReceiveWebsocketData(context)
+        val dns = object : Dns {
+            override fun lookup(hostname: String): List<InetAddress> {
+                return Dns.SYSTEM.lookup(hostname).filter {
+                    Inet4Address::class.java.isInstance(it)
+                }
+            }
         }
+
+        val context = this
+        val timeout = Duration.ofSeconds(100L)
+        client = HttpClient(OkHttp) {
+            engine { config {
+                dns(dns)
+                writeTimeout(timeout)
+                readTimeout(timeout)
+                connectTimeout(timeout)
+            } }
+
+            install(WebSockets) { pingInterval = WS_PING_INTERVAL }
+        }
+
+        runBlocking { maybeReceiveWebsocketData(context) }
+
     }
 
     override fun onStop() {

@@ -32,15 +32,15 @@ The architecture consists into different layers:
 ### Steps
 
 1. Link the Rust library project into the rust folder (be sure it compiles when running `cargo build --release`):
-2. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK 
+2. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK
 additional properties as follows:
 
 ```env
 sdk.dir=/opt/android-sdk
 ndk.dir=/opt/android-sdk/ndk/25.2.9519653
 
-rust.rustcCommand=/home/mauro/.cargo/bin/rustc
-rust.cargoCommand=/home/mauro/.cargo/bin/cargo
+rust.rustcCommand=/path/to/.cargo/bin/rustc
+rust.cargoCommand=/path/to/.cargo/bin/cargo
 ```
 
 And create the `config.properties` file:
@@ -58,8 +58,11 @@ cargo.profile=release
 3. Plug the device and run
 
 ```bash
-./scripts/setup-plugdev-perm.sh
+./scripts/connect-device.sh
 ```
+
+**Note:** you may need to adjust the script above in order to make it work with your device.
+The script is supposed to work with Pixels phones only.
 
 4. Build and install the app
 
@@ -74,7 +77,7 @@ In order to setup a production-ready instance, you need:
 
 1. Clone https://github.com/proofcastlabs/event-attestator/
 2. Clone https://github.com/proofcastlabs/tee-wrapper-android
-3. Follow the setup guide in the `event-attestator` repo and run the jsonrpc-app 
+3. Follow the setup guide in the `event-attestator` repo and run the jsonrpc-app
 artifact with
 
 ```
@@ -127,20 +130,20 @@ collection = "signed_events"
 ./gradlew clean assembleDebug
 ```
 
-5. Copy the resulting artifact (`tee-wrapper-debug.apk`) in the production server and install it to 
+5. Copy the resulting artifact (`tee-wrapper-debug.apk`) in the production server and install it to
 device:
 
 ```bash
 adb -s <device-id> install -r tee-wrapper-debug.apk
 ```
 
-**Note:** you can get the device id with 
+**Note:** you can get the device id with
 
 ```bash
 adb devices
 ```
 
-6. Launch the app 
+6. Launch the app
 
 ```bash
 ./gradlew launch
@@ -153,6 +156,28 @@ file, then run:
 
 ```bash
 # ./scripts/rpc.sh <method> [...params]
-./scripts/rpc.sh init false 0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb 50 10 eth 
+./scripts/rpc.sh init false 0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb 50 10 eth
 ```
 
+### Release APK
+
+The release variant will be optimized for the production environment and the `run-as` feature
+is disabled.
+In order to create the release apk, a keystore must be provided for signing.
+
+Add to the `config.properties` file at the root of the project
+the following properties:
+
+```properties
+# Needed for signing the release variant
+ks.path=./keystore-path.jks
+ks.alias=signing-key
+ks.password=<pass>
+ks.password=<pass>
+```
+
+Check the guide [here](https://developer.android.com/studio/publish/app-signing) on how to create
+a compatible keystore and name it `keystore-path.jks`.
+
+**note:** here we have used the same password for the keystore access and the only alias
+`signing-key`.
