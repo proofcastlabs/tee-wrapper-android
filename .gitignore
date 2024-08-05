@@ -29,13 +29,9 @@ hs_err_pid*
 .idea
 *.iml
 
-testnet.keystore
-testnet.keystore.credentials
 local.properties
 *signing.properties
 *config.properties
-credentials
-keystore*
 .gradle
 *.gpg
 !gradle/wrapper/*.jar
@@ -44,3 +40,4 @@ keystore*
 
 .nx
 *.apk
+*.jks

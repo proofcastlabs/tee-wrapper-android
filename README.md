@@ -39,8 +39,8 @@ additional properties as follows:
 sdk.dir=/opt/android-sdk
 ndk.dir=/opt/android-sdk/ndk/25.2.9519653
 
-rust.rustcCommand=/home/mauro/.cargo/bin/rustc
-rust.cargoCommand=/home/mauro/.cargo/bin/cargo
+rust.rustcCommand=/path/to/.cargo/bin/rustc
+rust.cargoCommand=/path/to/.cargo/bin/cargo
 ```
 
 And create the `config.properties` file:
@@ -155,4 +155,29 @@ file, then run:
 # ./scripts/rpc.sh <method> [...params]
 ./scripts/rpc.sh init false 0x393ad7Bd0B94788b3B9EB15303E3845B4828E7Fb 50 10 eth 
 ```
+
+
+### Release APK
+
+The release variant will be optimized for the production environment and the `run-as` feature
+is disabled.
+In order to create the release apk, a keystore must be provided for signing. 
+
+Add to the `config.properties` file at the root of the project
+the following properties:
+
+```properties
+# Needed for signing the release variant
+ks.path=./keystore-path.jks
+ks.alias=signing-key
+ks.password=<pass>
+ks.password=<pass>
+```
+
+Check the guide [here](https://developer.android.com/studio/publish/app-signing) on how to create 
+a compatible keystore and name it `keystore-path.jks`.
+
+**note:** here we have used the same password for the keystore access and the only alias 
+`signing-key`.
+
 
