@@ -31,8 +31,7 @@ The architecture consists into different layers:
 
 ### Steps
 
-1. Link the Rust library project into the rust folder (be sure it compiles when running `cargo build --release`):
-2. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK
+1. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK
 additional properties as follows:
 
 ```env
