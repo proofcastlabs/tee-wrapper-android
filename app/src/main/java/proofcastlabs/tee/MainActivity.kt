@@ -3,6 +3,8 @@
 package proofcastlabs.tee
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import kotlinx.coroutines.runBlocking
@@ -26,9 +28,17 @@ import java.time.Duration
 class MainActivity : AppCompatActivity() {
     private external fun callCore(strongbox: Strongbox, db: DatabaseWiring, input: String): String
 
+    private val TAG = "[Main]"
     private val WS_RETRY_DELAY = 3_000L
     private val WS_PING_INTERVAL = 55_000L
+    private val WS_DEFAULT_PORT = "3000"
+    private val WS_DEFAULT_HOST = "localhost"
 
+    private val INTENT_KEY_WS_HOST = "wsHost"
+    private val INTENT_KEY_WS_PORT = "wsPort"
+
+    private var wsHost = "localhost"
+    private var wsPort = 3000
     private val verifyStateHash = BuildConfig.VERIFY_STATE_HASH.toBoolean()
     private val writeStateHash = BuildConfig.WRITE_STATE_HASH.toBoolean()
     private val isStrongboxBacked = BuildConfig.STRONGBOX_ENABLED.toBoolean()
@@ -36,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     private var strongbox: Strongbox? = null
     private var db: DatabaseWiring? = null
 
-    val TAG = "[Main]"
 
     init {
         System.loadLibrary("sqliteX")
@@ -49,8 +58,8 @@ class MainActivity : AppCompatActivity() {
         client!!.webSocket(
             method = HttpMethod.Get,
             path = "/ws",
-            host = "127.0.0.1",
-            port = 3000
+            host = wsHost,
+            port = wsPort
         ) {
             Log.i(TAG, "Websocket connected")
             strongbox = Strongbox(context)
@@ -103,6 +112,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Send intent extra by adding --es <param> to the launch.sh
+        // script
+        if (intent.extras != null) {
+            wsHost = intent.extras!!.getString(INTENT_KEY_WS_HOST, WS_DEFAULT_HOST)
+            wsPort = intent.extras!!.getString(INTENT_KEY_WS_PORT, WS_DEFAULT_PORT).toInt()
+        }
+
+        Log.d(TAG, "Host: $wsHost")
+        Log.d(TAG, "Port: $wsPort")
 
         val dns = object : Dns {
             override fun lookup(hostname: String): List<InetAddress> {
