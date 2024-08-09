@@ -77,7 +77,7 @@ In order to setup a production-ready instance, you need:
 
 1. Clone https://github.com/proofcastlabs/event-attestator/
 2. Clone https://github.com/proofcastlabs/tee-wrapper-android
-3. Follow the setup guide in the `event-attestator` repo and run the jsonrpc-appp
+3. Follow the setup guide in the `event-attestator` repo and run the jsonrpc-app
 artifact with
 
 ```
