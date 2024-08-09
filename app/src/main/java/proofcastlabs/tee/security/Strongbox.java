@@ -37,6 +37,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 
+import org.apache.commons.codec.binary.Hex;
+
 import proofcastlabs.tee.logging.RustLogger;
 
 public class Strongbox implements StrongboxInterface {
@@ -383,12 +385,8 @@ public class Strongbox implements StrongboxInterface {
             CBORFactory cborFactory = new CBORFactory();
             ObjectMapper mapper = new ObjectMapper(cborFactory);
             byte[] data = mapper.writeValueAsBytes(attestationCertificate);
-            ByteArrayOutputStream ba = new ByteArrayOutputStream();
-            ba.write(data);
 
-            return Base64
-                    .encodeToString(ba.toByteArray(), Base64.DEFAULT)
-                    .replaceAll("\n", "");
+            return new String(Hex.encodeHex(data));
 
         } catch (Exception e) {
             RustLogger.rustLog(CLASS_NAME + " getCertificateAttestation: Failed to generate the certificate " + e.getMessage());
