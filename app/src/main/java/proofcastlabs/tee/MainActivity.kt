@@ -3,14 +3,16 @@
 package proofcastlabs.tee
 
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import kotlinx.coroutines.runBlocking
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.logging.ANDROID
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.websocket.*
@@ -24,6 +26,7 @@ import java.lang.Exception
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.time.Duration
+import java.util.logging.Level
 
 class MainActivity : AppCompatActivity() {
     private external fun callCore(strongbox: Strongbox, db: DatabaseWiring, input: String): String
@@ -140,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                 readTimeout(timeout)
                 connectTimeout(timeout)
             } }
-
+            install(Logging) { level = LogLevel.ALL; logger = Logger.ANDROID }
             install(WebSockets) { pingInterval = WS_PING_INTERVAL }
         }
 
