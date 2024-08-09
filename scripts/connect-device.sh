@@ -9,5 +9,5 @@
 #
 lsusb | grep -i google | awk '{print "/dev/bus/usb/"$2"/"$4}' | tr -d ':' | xargs sudo chown "$USER:plugdev"
 adb kill-server
+read -p "Please press 'Allow' on the device display and press enter..."
 adb devices
-adb reverse tcp:3000 tcp:3000

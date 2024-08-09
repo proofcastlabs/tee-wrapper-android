@@ -18,7 +18,7 @@ def verifyStateHash = config.getProperty('build.verifyStateHash', 'false')
 def writeStateHash = config.getProperty('build.writeStateHash', 'false')
 def buildType = gradle.startParameter.taskNames.any { it.contains("Debug") } ? "debug" : "release"
 
-def ksPath = config.getProperty('ks.path')
+def ksPath = config.getProperty('ks.path', './')
 def ksPassword = config.getProperty('ks.password')
 def ksAlias = config.getProperty('ks.alias')
 
@@ -130,6 +130,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation "io.ktor:ktor-client-core:$ktorVersion"
     implementation "io.ktor:ktor-client-cio:$ktorVersion"
+    implementation "io.ktor:ktor-client-logging:$ktorVersion"
     implementation "io.ktor:ktor-client-websockets:$ktorVersion"
     implementation "io.ktor:ktor-client-okhttp:$ktorVersion"
     implementation 'commons-codec:commons-codec:1.17.0'
