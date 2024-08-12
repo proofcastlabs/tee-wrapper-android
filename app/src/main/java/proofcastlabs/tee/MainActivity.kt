@@ -9,6 +9,10 @@ import kotlinx.coroutines.runBlocking
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.logging.ANDROID
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.websocket.*
@@ -26,9 +30,20 @@ import java.time.Duration
 class MainActivity : AppCompatActivity() {
     private external fun callCore(strongbox: Strongbox, db: DatabaseWiring, input: String): String
 
+    private val TAG = "[Main]"
     private val WS_RETRY_DELAY = 3_000L
     private val WS_PING_INTERVAL = 55_000L
+    private val WS_DEFAULT_PORT = "3000"
+    private val WS_DEFAULT_HOST = "localhost"
+    private val WS_DEFAULT_TIMEOUT = 10_000L
 
+    private val INTENT_KEY_WS_HOST = "wsHost"
+    private val INTENT_KEY_WS_PORT = "wsPort"
+    private val INTENT_KEY_WS_TIMEOUT = "wsTimeout"
+
+    private var wsHost = "localhost"
+    private var wsPort = 3000
+    private var wsTimeout = WS_DEFAULT_TIMEOUT
     private val verifyStateHash = BuildConfig.VERIFY_STATE_HASH.toBoolean()
     private val writeStateHash = BuildConfig.WRITE_STATE_HASH.toBoolean()
     private val isStrongboxBacked = BuildConfig.STRONGBOX_ENABLED.toBoolean()
@@ -36,7 +51,6 @@ class MainActivity : AppCompatActivity() {
     private var strongbox: Strongbox? = null
     private var db: DatabaseWiring? = null
 
-    val TAG = "[Main]"
 
     init {
         System.loadLibrary("sqliteX")
@@ -47,10 +61,11 @@ class MainActivity : AppCompatActivity() {
 
     suspend fun receiveWebsocketData(context: Context) {
         client!!.webSocket(
-            method = HttpMethod.Get,
-            path = "/ws",
-            host = "127.0.0.1",
-            port = 3000
+//            method = HttpMethod.Get,
+//            path = "/ws",
+//            host = wsHost,
+//            port = wsPort
+        "ws://$wsHost:$wsPort/ws"
         ) {
             Log.i(TAG, "Websocket connected")
             strongbox = Strongbox(context)
@@ -104,6 +119,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Send intent extra by adding --es <param> to the launch.sh
+        // script
+        if (intent.extras != null) {
+            wsHost = intent.extras!!.getString(INTENT_KEY_WS_HOST, WS_DEFAULT_HOST)
+            wsPort = intent.extras!!.getString(INTENT_KEY_WS_PORT, WS_DEFAULT_PORT).toInt()
+            wsTimeout = intent.extras!!.getString(INTENT_KEY_WS_TIMEOUT, WS_DEFAULT_TIMEOUT.toString()).toLong()
+        }
+
+        Log.d(TAG, "Host: $wsHost")
+        Log.d(TAG, "Port: $wsPort")
+        Log.d(TAG, "Timeout: $wsTimeout")
+
         val dns = object : Dns {
             override fun lookup(hostname: String): List<InetAddress> {
                 return Dns.SYSTEM.lookup(hostname).filter {
@@ -113,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val context = this
-        val timeout = Duration.ofSeconds(100L)
+        val timeout = Duration.ofMillis(wsTimeout)
         client = HttpClient(OkHttp) {
             engine { config {
                 dns(dns)
@@ -121,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 readTimeout(timeout)
                 connectTimeout(timeout)
             } }
-
+            install(Logging) { level = LogLevel.ALL; logger = Logger.ANDROID }
             install(WebSockets) { pingInterval = WS_PING_INTERVAL }
         }
 
