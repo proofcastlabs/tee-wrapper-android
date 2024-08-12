@@ -386,7 +386,7 @@ public class Strongbox implements StrongboxInterface {
             ObjectMapper mapper = new ObjectMapper(cborFactory);
             byte[] data = mapper.writeValueAsBytes(attestationCertificate);
 
-            return new String(Hex.encodeHex(data));
+            return "0x" + new String(Hex.encodeHex(data));
 
         } catch (Exception e) {
             RustLogger.rustLog(CLASS_NAME + " getCertificateAttestation: Failed to generate the certificate " + e.getMessage());
