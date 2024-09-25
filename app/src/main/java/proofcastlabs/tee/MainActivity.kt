@@ -95,7 +95,6 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "Retrying to connect")
                     delay(WS_RETRY_DELAY)
                 }
-
             }
         }
 
@@ -131,7 +130,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        client!!.close()
+        client?.let { it.close() }
+        db?.let { it.close() }
+        db = null
+        client = null
+        strongbox = null
         Log.i(TAG, "Websocket connection closed!")
     }
 }
