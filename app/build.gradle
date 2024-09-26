@@ -16,7 +16,11 @@ def attestatorPath = config.getProperty('cargo.attestatorPath')
 def strongboxEnabled = config.getProperty('build.strongboxEnabled', 'false')
 def verifyStateHash = config.getProperty('build.verifyStateHash', 'false')
 def writeStateHash = config.getProperty('build.writeStateHash', 'false')
-def buildType = gradle.startParameter.taskNames.any { it.contains("Debug") } ? "debug" : "release"
+def buildType = gradle.startParameter.taskNames.any { it.contains("Debug") }
+    ? "debug"
+    : gradle.startParameter.taskNames.any { it.contains("Release") }
+        ? "release"
+        : "unsigned"
 
 def ksPath = config.getProperty('ks.path')
 def ksPassword = config.getProperty('ks.password')
@@ -51,6 +55,10 @@ android {
     }
 
     buildTypes {
+        unsigned {
+            signingConfig null
+        }
+
         release {
             debuggable true
             jniDebuggable true
@@ -81,7 +89,7 @@ android {
             println("Signed with $ksPath")
         }
         copy {
-            def fileName = "app-${buildType}.apk"
+            def fileName = buildType == "unsigned" ? "app-unsigned-${buildType}.apk" : "app-${buildType}.apk"
             def origin = "build/outputs/apk/${buildType}/${fileName}"
             def dest = "${rootProject.name}-${buildType}.apk"
             println "Copying from $origin to $dest"
