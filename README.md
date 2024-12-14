@@ -31,7 +31,8 @@ The architecture consists into different layers:
 
 ### Steps
 
-1. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK
+1. Link the Rust library project into the rust folder (be sure it compiles when running `cargo build --release`):
+2. Create a `local.properties` file into the project's root folder with the path to the android SDK and NDK
 additional properties as follows:
 
 ```env
@@ -180,3 +181,12 @@ a compatible keystore and name it `keystore-path.jks`.
 
 **note:** here we have used the same password for the keystore access and the only alias
 `signing-key`.
+
+
+### Websocket connection customization
+
+You can set the ws host and port to connect by using the launch.sh script:
+
+```bash
+ ./scripts/launch.sh -e wsHost 8.8.8.8 -e wsPort 23000
+```
